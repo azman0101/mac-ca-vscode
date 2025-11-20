@@ -2,14 +2,14 @@
   "name": "mac-ca-vscode",
   "displayName": "Mac CA VSCode",
   "description": "Make all certificates in Keychain Access available to VS Code extensions",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "engines": {
     "vscode": "^1.74.0"
   },
-  "publisher": "linhmtran168",
+  "publisher": "azman0101",
   "author": {
-    "name": "Linh M. Tran",
-    "email": "linh.mtran168@live.com"
+    "name": "Azman0101",
+    "email": "azman0101@hotmail.com"
   },
   "categories": [
     "Other"
@@ -19,10 +19,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/linhmtran168/mac-ca-vscode"
+    "url": "git+https://github.com/azman0101/mac-ca-vscode"
   },
   "bugs": {
-    "url": "https://github.com/linhmtran168/mac-ca-vscode"
+    "url": "https://github.com/azman0101/mac-ca-vscode"
   },
   "main": "./dist/extension.js",
   "scripts": {

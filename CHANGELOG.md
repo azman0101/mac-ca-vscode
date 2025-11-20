@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.2.1] - 2025-11-20
+
+- Change publisher name
+
 ## [0.2.0] - 2025-11-20
 
 - Fix critical VS Code incompatibilities

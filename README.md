@@ -10,7 +10,7 @@ It replaces `tls.createSecureContext` with a custom implementation that loads ce
 
 ## Installation
 
-Install from the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=linhmtran168.mac-ca-vscode) or:
+Install from the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=azman0101.mac-ca-vscode) or:
 1. Open VS Code
 2. Press `Cmd+Shift+X` (Extensions pane)
 3. Search for `mac-ca-vscode`
