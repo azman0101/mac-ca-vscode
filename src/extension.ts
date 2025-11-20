@@ -2,8 +2,14 @@ import * as vscode from 'vscode';
 import * as childProcess from 'child_process';
 import * as tls from 'tls';
 
+let outputChannel: vscode.OutputChannel;
+
 function initialize() {
+  outputChannel = vscode.window.createOutputChannel('Mac CA VSCode');
+  outputChannel.appendLine('Mac CA VSCode: Initialization started.');
+
   if (process.platform !== 'darwin') { 
+    outputChannel.appendLine('Mac CA VSCode: Platform is not darwin. Skipping.');
     return;
   }
 
@@ -16,15 +22,17 @@ function initialize() {
     const rootResult = childProcess.spawnSync('/usr/bin/security', [...args, systemRootCertsPath]);
 
     if (trustedResult.error) {
-      console.error('Error fetching trusted certificates:', trustedResult.error);
+      outputChannel.appendLine(`Error fetching trusted certificates: ${trustedResult.error.message}`);
     }
     if (rootResult.error) {
-      console.error('Error fetching root certificates:', rootResult.error);
+      outputChannel.appendLine(`Error fetching root certificates: ${rootResult.error.message}`);
     }
 
     const allTrusted = trustedResult.stdout ? trustedResult.stdout.toString().split(splitPattern) : [];
     const allRoot = rootResult.stdout ? rootResult.stdout.toString().split(splitPattern) : [];
     const all = [...allTrusted, ...allRoot];
+
+    outputChannel.appendLine(`Found ${allTrusted.length} trusted certificates and ${allRoot.length} root certificates.`);
 
     const origCreateSecureContext = tls.createSecureContext;
     (tls as any).createSecureContext = (options: tls.SecureContextOptions) => {
@@ -44,8 +52,9 @@ function initialize() {
       });
       return ctx;
     };
+    outputChannel.appendLine('Mac CA VSCode: TLS patched successfully.');
   } catch (err) {
-    console.error('Failed to initialize mac-ca-vscode:', err);
+    outputChannel.appendLine(`Failed to initialize mac-ca-vscode: ${err}`);
   }
 }
 
@@ -61,4 +70,8 @@ export function activate(_context: vscode.ExtensionContext) {
   // Extension is active
 }
 
-export function deactivate() {}
+export function deactivate() {
+  if (outputChannel) {
+    outputChannel.dispose();
+  }
+}
