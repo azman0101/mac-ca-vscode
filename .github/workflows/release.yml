@@ -5,17 +5,18 @@ on:
     types: [published]
 
 jobs:
-  deploy:
+  build-and-upload:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - run: npm ci
-      - name: Publish to VS Code Marketplace
-        uses: lannonbr/vsce-action@4.0.0
+      - run: npx vsce package
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
         with:
-          args: "publish -p $VSCE_TOKEN"
-        env:
-          VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+          files: "*.vsix"
