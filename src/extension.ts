@@ -1,3 +1,7 @@
+import * as vscode from 'vscode';
+import * as childProcess from 'child_process';
+import * as tls from 'tls';
+
 function initialize() {
   if (process.platform !== 'darwin') { 
     return;
@@ -7,33 +11,54 @@ function initialize() {
   const systemRootCertsPath = '/System/Library/Keychains/SystemRootCertificates.keychain';
   const args = ['find-certificate', '-a', '-p'];
 
-  const childProcess = require('child_process');
-  const allTrusted = childProcess.spawnSync('/usr/bin/security', args)
-    .stdout.toString().split(splitPattern);
+  try {
+    const trustedResult = childProcess.spawnSync('/usr/bin/security', args);
+    const rootResult = childProcess.spawnSync('/usr/bin/security', [...args, systemRootCertsPath]);
 
-  const allRoot = childProcess.spawnSync('/usr/bin/security', args.concat(systemRootCertsPath))
-    .stdout.toString().split(splitPattern);
-  const all = allTrusted.concat(allRoot);
+    if (trustedResult.error) {
+      console.error('Error fetching trusted certificates:', trustedResult.error);
+    }
+    if (rootResult.error) {
+      console.error('Error fetching root certificates:', rootResult.error);
+    }
 
-  const tls = require('tls');
-  const origCreateSecureContext = tls.createSecureContext;
-  tls.createSecureContext = (options: any) => {
-    const ctx = origCreateSecureContext(options);
-    all.filter(duplicated).forEach((cert: string) => {
-      ctx.context.addCACert(cert.trim());
-    });
-    return ctx;
-  };
+    const allTrusted = trustedResult.stdout ? trustedResult.stdout.toString().split(splitPattern) : [];
+    const allRoot = rootResult.stdout ? rootResult.stdout.toString().split(splitPattern) : [];
+    const all = [...allTrusted, ...allRoot];
+
+    const origCreateSecureContext = tls.createSecureContext;
+    (tls as any).createSecureContext = (options: tls.SecureContextOptions) => {
+      const ctx = origCreateSecureContext(options);
+      const distinctCerts = all.filter(filterDuplicates);
+
+      distinctCerts.forEach((cert: string) => {
+        const trimmedCert = cert.trim();
+        if (trimmedCert) {
+            try {
+              // Accessing internal context to add CA cert
+              (ctx as any).context.addCACert(trimmedCert);
+            } catch {
+              // Ignore invalid certs or add errors
+            }
+        }
+      });
+      return ctx;
+    };
+  } catch (err) {
+    console.error('Failed to initialize mac-ca-vscode:', err);
+  }
 }
 
-function duplicated(cert: string, index: number, arr: string[]) {
+function filterDuplicates(cert: string, index: number, arr: string[]) {
   return arr.indexOf(cert) === index;
 }
 
+// Execute initialization
 initialize();
 
-export function activate() {
-  console.log('Congratulations, your extension "mac-ca-vscode" is now active!');
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function activate(_context: vscode.ExtensionContext) {
+  // Extension is active
 }
 
 export function deactivate() {}
